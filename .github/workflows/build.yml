@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: openwrt-h28k
+  cancel-in-progress: true
+
 env:
   OPENWRT_REF: v25.12.5
 
