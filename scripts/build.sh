@@ -16,15 +16,11 @@ cp "$TOP/feeds.conf.default" feeds.conf.default
 
 sh "$TOP/scripts/prepare-feeds.sh"
 
-# Install only package metadata from the official feeds. Local package trees
-# (PassWall2/MosDNS/PassWall dependencies) are picked up directly by OpenWrt.
 ./scripts/feeds install -a
 
 cp "$TOP/configs/seed.config" .config
 make defconfig
 
-# Fail early if the requested H28K target and Chinese LuCI language
-# selection were silently dropped by Kconfig.
 grep -q '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=y$' .config
 grep -q '^CONFIG_LUCI_LANG_zh_Hans=y$' .config
 for pkg in \
@@ -33,7 +29,7 @@ for pkg in \
   luci-i18n-mosdns-zh-cn \
   luci-i18n-statistics-zh-cn
 do
-  grep -q "^CONFIG_PACKAGE_\${pkg}=y$" .config
+  grep -q "^CONFIG_PACKAGE_${pkg}=y$" .config
 done
 
 echo "Selected target:"
