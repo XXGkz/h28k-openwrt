@@ -16,10 +16,21 @@ cp "$TOP/feeds.conf.default" feeds.conf.default
 
 sh "$TOP/scripts/prepare-feeds.sh"
 
+# Install only package metadata from the official feeds. Local package trees
+# (PassWall2/MosDNS/PassWall dependencies) are picked up directly by OpenWrt.
 ./scripts/feeds install -a
 
 cp "$TOP/configs/seed.config" .config
 make defconfig
+
+# Fail early if the requested H28K target was silently dropped by defconfig.
+grep -q '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=y$' .config
+
+echo "Selected target:"
+grep '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=' .config
+
+echo "Selected proxy/DNS packages:"
+grep -E '^CONFIG_PACKAGE_(luci-app-passwall2|tcping|geoview|v2ray-geoip|v2ray-geosite|xray-core|sing-box|chinadns-ng|mosdns|luci-app-mosdns)=' .config || true
 
 make download -j8
 make -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)" V=s
