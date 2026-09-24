@@ -38,22 +38,7 @@ done
 
 # Fail early if the requested target or required Chinese translations were
 # silently dropped by Kconfig.
-grep -q '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=y
-echo "Selected target:"
-grep '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=' .config
-
-echo "Selected proxy/DNS packages:"
-grep -E '^CONFIG_PACKAGE_(luci-app-passwall2|tcping|geoview|v2ray-geoip|v2ray-geosite|xray-core|sing-box|chinadns-ng|mosdns|luci-app-mosdns)=' .config || true
-
-make download -j8
-make -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)" V=s
-
-mkdir -p "$TOP/output"
-rm -rf "$TOP/output"/*
-cp -a bin/targets/rockchip/armv8 "$TOP/output/"
-
-echo "Build finished. Firmware is under: $TOP/output/"
- .config
+grep -q '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=y$' .config
 for pkg in \
   luci-i18n-base-zh-cn \
   luci-i18n-passwall2-zh-cn \
