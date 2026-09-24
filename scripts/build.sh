@@ -1,5 +1,5 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 OPENWRT_REF="${OPENWRT_REF:-v25.12.5}"
 TOP="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
