@@ -51,6 +51,11 @@ jobs:
           chmod +x scripts/*.sh
           ./scripts/build.sh
 
+      - name: Validate build and warnings
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/validate-build.sh
+
       - name: Generate checksums
         run: |
           cd output
