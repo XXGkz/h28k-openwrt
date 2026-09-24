@@ -23,22 +23,10 @@ sh "$TOP/scripts/prepare-feeds.sh"
 cp "$TOP/configs/seed.config" .config
 make defconfig
 
-# Some LuCI translation packages are hidden Kconfig symbols. Explicitly force
-# the requested Chinese translations after defconfig so they cannot be pruned
-# as optional/hidden packages.
-for pkg in \
-  luci-i18n-base-zh-cn \
-  luci-i18n-passwall2-zh-cn \
-  luci-i18n-mosdns-zh-cn \
-  luci-i18n-statistics-zh-cn
-do
-  sed -i "/^# CONFIG_PACKAGE_\${pkg} is not set$/d; /^CONFIG_PACKAGE_\${pkg}=/d" .config
-  printf 'CONFIG_PACKAGE_%s=y\n' "$pkg" >> .config
-done
-
-# Fail early if the requested target or required Chinese translations were
-# silently dropped by Kconfig.
+# Fail early if the requested H28K target and Chinese LuCI language
+# selection were silently dropped by Kconfig.
 grep -q '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=y$' .config
+grep -q '^CONFIG_LUCI_LANG_zh_Hans=y$' .config
 for pkg in \
   luci-i18n-base-zh-cn \
   luci-i18n-passwall2-zh-cn \
