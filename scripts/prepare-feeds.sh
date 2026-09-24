@@ -1,29 +1,27 @@
 #!/bin/sh
 set -eu
 
-# PassWall2 itself.
-rm -rf package/passwall2
-git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall2.git package/passwall2
+# Pin third-party components to compatible release lines instead of tracking moving
+# branches. This keeps PassWall2, Xray and the MosDNS Go toolchain aligned.
+PASSWALL2_REF="26.8.27-1"
+MOSDNS_REF="v5.3.4-r6"
 
-# PassWall2 runtime dependencies which are not present in the official 25.12 feeds.
-# This repository provides tcping, geoview, xray-core, sing-box, v2ray-geoip,
-# v2ray-geosite and related packages.
+rm -rf package/passwall2
+git clone --depth=1 --branch "$PASSWALL2_REF" https://github.com/Openwrt-Passwall/openwrt-passwall2.git package/passwall2
+
 rm -rf package/passwall-packages
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git package/passwall-packages
 
-# Xray 26.9.9 now requires Go 1.27, while the MosDNS-compatible 26.x toolchain
-# is Go 1.26.x. Pin Xray to 26.7.28, whose release is built with Go 1.26,
-# so the firmware build remains reproducible without mixing toolchain majors.
-sed -i   -e 's/^PKG_VERSION:=26\.9\.9$/PKG_VERSION:=26.7.28/'   -e 's/^PKG_HASH:=.*$/PKG_HASH:=a9afe86349c7bd3e6cae60125e62a5ada09d102e1a2760623e77c24a84dbfb46/'   package/passwall-packages/xray-core/Makefile
+# Remove packages duplicated by PassWall's feed. Keeping both copies can produce
+# dependency/version warnings during feeds install and defconfig.
+rm -rf   feeds/packages/net/xray-core   feeds/packages/net/v2ray-geodata   feeds/packages/net/sing-box   feeds/packages/net/chinadns-ng   feeds/packages/net/dns2socks   feeds/packages/net/hysteria   feeds/packages/net/ipt2socks   feeds/packages/net/microsocks   feeds/packages/net/naiveproxy   feeds/packages/net/shadowsocks-rust   feeds/packages/net/shadowsocksr-libev   feeds/packages/net/simple-obfs   feeds/packages/net/tcping   feeds/packages/net/v2ray-plugin   feeds/packages/net/xray-plugin   feeds/packages/net/geoview   feeds/packages/net/shadow-tls   2>/dev/null || true
 
-# MosDNS v5 and its geodata package.
+# MosDNS v5.3.4-r6 contains the current OpenWrt 25.12-compatible LuCI package
+# (1.7.5) and its explicit ucode dependency, plus recent geodata/update fixes.
 rm -rf package/mosdns package/v2ray-geodata
-git clone --depth=1 --branch v5 https://github.com/sbwml/luci-app-mosdns.git package/mosdns
+git clone --depth=1 --branch "$MOSDNS_REF" https://github.com/sbwml/luci-app-mosdns.git package/mosdns
 git clone --depth=1 https://github.com/sbwml/v2ray-geodata.git package/v2ray-geodata
 
-# MosDNS v5 currently requires a newer Go toolchain than the stock 25.12 feed.
+# MosDNS v5 requires the newer Go feed.
 rm -rf feeds/packages/lang/golang
 git clone --depth=1 --branch 26.x https://github.com/sbwml/packages_lang_golang.git feeds/packages/lang/golang
-
-# Avoid duplicate geodata packages from the official packages feed.
-rm -rf feeds/packages/net/v2ray-geodata package/feeds/packages/v2ray-geodata 2>/dev/null || true
