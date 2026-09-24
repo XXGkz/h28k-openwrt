@@ -23,8 +23,45 @@ sh "$TOP/scripts/prepare-feeds.sh"
 cp "$TOP/configs/seed.config" .config
 make defconfig
 
-# Fail early if the requested H28K target was silently dropped by defconfig.
-grep -q '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=y$' .config
+# Some LuCI translation packages are hidden Kconfig symbols. Explicitly force
+# the requested Chinese translations after defconfig so they cannot be pruned
+# as optional/hidden packages.
+for pkg in \
+  luci-i18n-base-zh-cn \
+  luci-i18n-passwall2-zh-cn \
+  luci-i18n-mosdns-zh-cn \
+  luci-i18n-statistics-zh-cn
+do
+  sed -i "/^# CONFIG_PACKAGE_\${pkg} is not set$/d; /^CONFIG_PACKAGE_\${pkg}=/d" .config
+  printf 'CONFIG_PACKAGE_%s=y\n' "$pkg" >> .config
+done
+
+# Fail early if the requested target or required Chinese translations were
+# silently dropped by Kconfig.
+grep -q '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=y
+echo "Selected target:"
+grep '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=' .config
+
+echo "Selected proxy/DNS packages:"
+grep -E '^CONFIG_PACKAGE_(luci-app-passwall2|tcping|geoview|v2ray-geoip|v2ray-geosite|xray-core|sing-box|chinadns-ng|mosdns|luci-app-mosdns)=' .config || true
+
+make download -j8
+make -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)" V=s
+
+mkdir -p "$TOP/output"
+rm -rf "$TOP/output"/*
+cp -a bin/targets/rockchip/armv8 "$TOP/output/"
+
+echo "Build finished. Firmware is under: $TOP/output/"
+ .config
+for pkg in \
+  luci-i18n-base-zh-cn \
+  luci-i18n-passwall2-zh-cn \
+  luci-i18n-mosdns-zh-cn \
+  luci-i18n-statistics-zh-cn
+do
+  grep -q "^CONFIG_PACKAGE_\${pkg}=y$" .config
+done
 
 echo "Selected target:"
 grep '^CONFIG_TARGET_rockchip_armv8_DEVICE_hinlink_h28k=' .config
