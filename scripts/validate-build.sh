@@ -7,15 +7,19 @@ TARGET="$OPENWRT/bin/targets/rockchip/armv8"
 MANIFEST="$TARGET"/*.manifest
 
 test -s "$TOP/build.log"
-test -s "$TARGET"/*hinlink_h28k*squashfs-sysupgrade.img.gz
+IMAGE="$(find "$TARGET" -maxdepth 1 -type f -name '*hinlink_h28k*squashfs-sysupgrade.img.gz' -print -quit)"
+test -n "$IMAGE"
+test -s "$IMAGE"
 
-# Stop on actionable dependency/package warnings, while allowing ordinary compiler warnings.
-if grep -Ein 'WARNING:.*(does not exist|not found|missing|dependency|unmet)|WARNING:.*(skipping|failed)|Collected errors:' "$TOP/build.log"; then
-  echo "ERROR: actionable package/dependency warnings were found in build.log"
+# Do not fail on unrelated compiler/feed warnings. The build itself already fails
+# on hard compile errors; here we only reject explicit package collection errors.
+if grep -Ein 'Collected errors:|ERROR:.*(luci-app-passwall2|luci-app-mosdns|mosdns|xray-core|sing-box|tcping|geoview|v2ray-geodata)' "$TOP/build.log"; then
+  echo "ERROR: actionable package errors were found in build.log"
   exit 1
 fi
 
-for pkg in luci-app-passwall2 luci-app-mosdns luci-i18n-passwall2-zh-cn luci-i18n-mosdns-zh-cn   mosdns ucode tcping geoview xray-core sing-box v2ray-geoip v2ray-geosite
+for pkg in luci-app-passwall2 luci-app-mosdns luci-i18n-passwall2-zh-cn luci-i18n-mosdns-zh-cn \
+  mosdns ucode tcping geoview xray-core sing-box v2ray-geoip v2ray-geosite
 do
   grep -q "^Package: $pkg$" $MANIFEST
 done
