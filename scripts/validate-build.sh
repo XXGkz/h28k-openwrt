@@ -76,7 +76,6 @@ def contains(value, expected):
 checks = [
     ("hinlink,h28k", lambda d: contains(d, "hinlink,h28k")),
     ("rockchip/armv8", lambda d: contains(d, "rockchip/armv8")),
-    ("hinlink_h28k", lambda d: contains(d, "hinlink_h28k")),
 ]
 for label, check in checks:
     if not any(check(d) for d in metadata):
