@@ -63,7 +63,7 @@ jobs:
             xargs -0 sha256sum > SHA256SUMS.txt
 
       - name: Upload firmware
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: openwrt-h28k-firmware
           path: output/**
